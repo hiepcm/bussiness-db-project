@@ -1,0 +1,12 @@
+<?php
+
+namespace App;
+
+use Illuminate\Database\Eloquent\Model;
+
+class CandidateContact extends Model
+{
+    protected $table = 'candidate_contact';
+    protected $fillable = ['id', 'del_flag', 'candidate_id', 'contact_id', 'value', 'created_by',
+    'modified_by', 'created_at', 'updated_at'];
+}
