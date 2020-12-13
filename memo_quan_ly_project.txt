@@ -1,0 +1,126 @@
+Quản lý code bằng github:
+https://github.com/
+user:hiepcm
+password:hiep123@a
+DONE.
+
+Cách download/upload code lên có hai cách dùng ssh hoặc https.
+Ta sẽ dùng ssh, và cách thiết lập như sau:
+cmd:
+$ ssh-keygen -t rsa -b 4096 -C "hiepcm@gmail.com"
+id_rsa.pub sẽ được tạo ra ta mở file và copy key lên github như sau:
+My account icon(góc phải) => Setting => SSH and GPG keys => New SSH key
+Paste key vừa copy vào, đặt tên ở Title rồi ấn Add SSH key để saved lại.
+DONE.
+
+2. Giờ ta vào copy link github của source code về và mở Terminal của Laragon lên:
+$ git clone https://github.com/hiepcm/bussiness-db-project.git;
+$ cd bussiness-db-project/
+λ composer create-project --prefer-dist laravel/laravel server-bussiness-db;
+DONE
+
+3. Giờ dùng git để up source code lên:
+λ git config --global user.name "Cao Minh Hiep";
+λ git config --global user.email "hiepcm@gmail.com";
+$ git status
+$ git add  server-bussiness-db/
+$ git commit -m "First-commit: Installed laravel";
+$ git push			//Đẩy code lên Github
+nó sẽ hỏi user/pass  thì đánh: hiepcm/hiep123@a
+Lên Github kiểm tra source code đã đẩy lên chưa.
+DONE.
+
+4. Sửa file rồi muốn quay trở lại git ban HEAD:
+λ git reset --hard
+
+4. Sửa môi trường trong file .env như sau:
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=salebussinessdb
+DB_USERNAME=root
+DB_PASSWORD=1234A1234a
+
+Để đọc tiếng Việt sửa file database.php trong config/ phần " 'mysql' => [" như sau:
+            'charset' => 'utf8',
+            'collation' => 'utf8_unicode_ci',
+5. Tạo Database:
+Mở Laragon window, right click, choose mySQL, choose Create Database: salebussinesdb
+xong rồi chạy thử lệnh sau để xem việc tạo các table có sẵn từ migration:
+λ php artisan migrate
+DONE.
+
+6. Tạo Models dùng lệnh sau:
+λ php artisan make:Model Team                                 
+λ php artisan make:Model Member                               
+λ php artisan make:Model TeamMember                           
+λ php artisan make:Model Configuration                        
+λ php artisan make:Model Candidate                            
+λ php artisan make:Model CandidateSkill                       
+λ php artisan make:Model CandidateContact                     
+λ php artisan make:Model Interview                            
+λ php artisan make:Model Interviewer                                                       
+λ php artisan make:Model InterviewerComment                   
+Model created successfully.                                   
+
+Khai báo để cho từng model biết nó được map với bảng nào cột gì trong Database: member table
+    protected $table = 'member';
+    protected $fillable = ['id', 'del_flag', 'username', 'password', 'fullname', 'is_male', 'birthday', 'email', 'phone', 'picture', 'access_level', 'created_by', 'modified_by', 'created_at', 'updated_at'];
+    protected $hidden = ['password'];
+
+6. Tạo Các Migrations:	
+Nguyên tắc là bảng nào ko bị ràng buộc vào bảng khác thì tạo trước:                  
+λ php artisan make:migration create_configuration_table --create=configuration               
+λ php artisan make:migration create_member_table --create=member                                                       
+λ php artisan make:migration create_team_table --create=team                                               
+λ php artisan make:migration create_team_member_table --create=team_member
+λ php artisan make:migration create_candidate_table --create=candidate                       
+λ php artisan make:migration create_candidate_skill_table --create=candidate_skill                           
+λ php artisan make:migration create_candidate_contact_table --create=candidate_contact                                  
+λ php artisan make:migration create_interview_table --create=interview                                                    
+λ php artisan make:migration create_interviewer_table --create=interviewer                                               
+λ php artisan make:migration create_interviewer_comment_table --create=interviewer_comment   
+
+Xong rồi chạy:
+λ php artisan migrate
+  Nếu muốn có thể xóa hết các tables đi rồi chạy lại lệnh.
+
+8. Tiếp theo ta tạo dữ liệu giả để test, dùng Seeder:
+λ php artisan make:seeder ConfigurationTableSeeder
+λ php artisan make:seeder MemberTableSeeder                    
+λ php artisan make:seeder TeamTableSeeder                      
+λ php artisan make:seeder TeamMemberTableSeeder                
+λ php artisan make:seeder CandidateTableSeeder                 
+λ php artisan make:seeder CandidateSkillTableSeeder            
+λ php artisan make:seeder CandidateContactTableSeeder          
+λ php artisan make:seeder InterviewTableSeeder                 
+λ php artisan make:seeder InterviewerTableSeeder               
+λ php artisan make:seeder InterviewerCommentTableSeeder        
+Seeder created successfully.                                   
+
+Có thể lấy dữ liệu giả từ link tác giả dưới:
+git@github.com:minhhuyptit/plct_youtube.git
+
+Seeder sẽ được chạy theo thứ tự nên ta cũng phải sắp xếp theo đúng thứ tự trong
+DatabaseSeeder.php:
+        $this->call(ConfigurationTableSeeder::class);
+        $this->call(MemberTableSeeder::class);
+        $this->call(TeamTableSeeder::class);
+        $this->call(TeamMemberTableSeeder::class);
+        $this->call(CandidateTableSeeder::class);
+        $this->call(CandidateSkillTableSeeder::class);
+        $this->call(CandidateContactTableSeeder::class);
+        $this->call(InterviewTableSeeder::class);
+        $this->call(InterviewerTableSeeder::class);
+        $this->call(InterviewerCommentTableSeeder::class);
+
+Dữ liệu giả lập sẽ có dạng sau:
+        DB::table('configuration')->insert([
+            array('del_flag'=>false, 'value'=> 'Đại Học Công Nghệ', 'description'=>'Description about University', 'type'=>'university', 'created_at'=>Carbon::now('Asia/Ho_Chi_Minh'), 'updated_at'=>Carbon::now('Asia/Ho_Chi_Minh')),
+            array('del_flag'=>false, 'value'=> 'Học viện Công Nghệ Bưu Chính Viễn Thông', 'description'=>'Description about University', 'type'=>'university', 'created_at'=>Carbon::now('Asia/Ho_Chi_Minh'), 'updated_at'=>Carbon::now('Asia/Ho_Chi_Minh'))
+        ]);
+
+Sau khi làm xong sẽ chạy lệnh sau:
+$ php artisan migrate:fresh --seed
+Có thể nó sẽ báo lỗi do thiếu import Carbon thì ta import vào như sau:
+use Carbon\Carbon;
