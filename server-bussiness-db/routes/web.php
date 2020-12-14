@@ -18,5 +18,6 @@ Route::get('/', function () {
 });
 
 Route::get('test', function () {
-    return DB::table('member')->get();
+    //return DB::table('configuration')->where('id',1)->get();
+    return DB::table('configuration')->get();
 });
