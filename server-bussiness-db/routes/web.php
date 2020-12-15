@@ -17,7 +17,13 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('test', function () {
-    //return DB::table('configuration')->where('id',1)->get();
-    return DB::table('configuration')->get();
-});
+// Route::get('test', function () {
+//     //return DB::table('configuration')->where('id',1)->get();
+//     return DB::table('configuration')->get();
+// });
+
+Route::get('memberRegister', function () {
+	return view('registerMembers');
+})->name('memberRegister');
+
+Route::post('store', 'MemberController@store')->name('registerMember');

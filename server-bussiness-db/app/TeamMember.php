@@ -21,5 +21,4 @@ class TeamMember extends Model
     public function member_role(){
         return $this->belongsTo(Configuration::class, 'team_member_role', 'id');
     }
-
 }

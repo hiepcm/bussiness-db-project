@@ -3,6 +3,7 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 
 class Member extends Model
 {
@@ -41,5 +42,4 @@ class Member extends Model
     public function interviewer_comment(){
         return $this->hasManyThrough(InterviewerComment::class, Interviewer::class, 'member_id', 'interviewer_id', 'id', 'id');
     }
-
 }
