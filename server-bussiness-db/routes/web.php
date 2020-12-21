@@ -1,7 +1,16 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
+use App\Member;
+use App\Team;
+use App\TeamMember;
+use App\Candidate;
+use App\CandidateSkill;
+use App\CandidateContact;
+use App\Interview;
+use App\Interviewer;
+use App\InterviewerComment;
+use App\Configuration;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -27,3 +36,8 @@ Route::get('memberRegister', function () {
 })->name('memberRegister');
 
 Route::post('store', 'MemberController@store')->name('registerMember');
+
+Route::get('testmodule', function () {
+	$getData = Interviewer::find(1);
+	return $getData->interviewer_comments;
+});

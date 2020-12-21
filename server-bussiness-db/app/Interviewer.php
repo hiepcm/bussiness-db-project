@@ -21,5 +21,4 @@ class Interviewer extends Model
     public function interviewer_comments(){
         return $this->hasMany(InterviewerComment::class, 'interviewer_id', 'id');
     }
-    
 }

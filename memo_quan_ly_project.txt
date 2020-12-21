@@ -25,7 +25,7 @@ DONE
 $ git status
 $ git add  server-bussiness-db/
 $ git commit -m "First-commit: Installed laravel";
-$ git push			//Đẩy code lên Github
+$ git push          //Đẩy code lên Github
 nó sẽ hỏi user/pass  thì đánh: hiepcm/hiep123@a
 Lên Github kiểm tra source code đã đẩy lên chưa.
 DONE.
@@ -49,6 +49,7 @@ Mở Laragon window, right click, choose mySQL, choose Create Database: salebuss
 xong rồi chạy thử lệnh sau để xem việc tạo các table có sẵn từ migration:
 λ php artisan migrate
 DONE.
+=====================
 
 6. Tạo Models dùng lệnh sau:
 λ php artisan make:Model Team                                 
@@ -67,8 +68,10 @@ Khai báo để cho từng model biết nó được map với bảng nào cột
     protected $table = 'member';
     protected $fillable = ['id', 'del_flag', 'username', 'password', 'fullname', 'is_male', 'birthday', 'email', 'phone', 'picture', 'access_level', 'created_by', 'modified_by', 'created_at', 'updated_at'];
     protected $hidden = ['password'];
+DONE.
+=====================
 
-6. Tạo Các Migrations:	
+6. Tạo Các Migrations:  
 Nguyên tắc là bảng nào ko bị ràng buộc vào bảng khác thì tạo trước:                  
 λ php artisan make:migration create_configuration_table --create=configuration               
 λ php artisan make:migration create_member_table --create=member                                                       
@@ -81,6 +84,19 @@ Nguyên tắc là bảng nào ko bị ràng buộc vào bảng khác thì tạo 
 λ php artisan make:migration create_interviewer_table --create=interviewer                                               
 λ php artisan make:migration create_interviewer_comment_table --create=interviewer_comment   
 
+Tạo DB trong migrations:
+Ví dụ: configuration db:
+    public function up()
+    {
+        Schema::create('configuration', function (Blueprint $table) {
+            $table->increments('id');
+            $table->boolean('del_flag')->default(false);
+            $table->string('value');
+            $table->string('description')->nullable()->default('');
+            $table->string('type');
+            $table->timestamps();
+        });
+    }
 Xong rồi chạy:
 λ php artisan migrate
   Nếu muốn có thể xóa hết các tables đi rồi chạy lại lệnh.
@@ -124,3 +140,285 @@ Sau khi làm xong sẽ chạy lệnh sau:
 $ php artisan migrate:fresh --seed
 Có thể nó sẽ báo lỗi do thiếu import Carbon thì ta import vào như sau:
 use Carbon\Carbon;
+DONE.
+=====================
+
+=====================
+9. Truy xuất dữ liệu từ DB thông qua modules:
+Ví dụ lấy dữ liệu các comments của một interviewer nào đó:
+
+Module Interviewer:
+    <?php
+    namespace App;
+    use Illuminate\Database\Eloquent\Model;
+    class Interviewer extends Model
+    {
+        protected $table = 'interviewer'; 
+        protected $fillable = ['id','del_flag','interview_id','member_id','evaluation',
+        'created_by','modified_by','created_at','updated_at']; 
+
+        public function interviewer_comments(){
+            return $this->hasMany(InterviewerComment::class, 'interviewer_id', 'id');
+        }
+    }
+
+Trong module InterviewerComment:
+    <?php
+    namespace App;
+    use Illuminate\Database\Eloquent\Model;
+    class InterviewerComment extends Model
+    {
+        protected $table = 'interviewer_comment'; 
+        protected $fillable = ['id','del_flag','interviewer_id','comment','rating','created_by','modified_by','created_at','updated_at'];
+    
+        protected $hidden = [
+            'laravel_through_key'
+        ];
+    ...
+    }
+
+
+    Trong Route web.php ta sẽ thử như dưới:
+    use App\Interviewer;
+    use App\InterviewerComment;
+
+    Route::get('testmodule', function () {
+        $getData = Interviewer::find(1);
+        return $getData->interviewer_comments;
+    });
+"
+Chay Postman để xem kết quả với phương thức GET: http://localhost:8000/testmodule
+Kết quả ta sẽ thu được như sau: 
+(Điều này có nghĩa là với Interviewer id=1, sẽ có 3 comments tương ứng như dưới đây:)
+{
+        "id": 1,
+        "del_flag": 0,
+        "interviewer_id": 1,
+        "comment": "Kiến thức nền tảng tốt",
+        "rating": 4,
+        "created_at": "2020-12-13T09:03:10.000000Z",
+        "updated_at": "2020-12-13T09:03:10.000000Z"
+    },
+    {
+        "id": 2,
+        "del_flag": 0,
+        "interviewer_id": 1,
+        "comment": "IQ cũng tạm chấp nhận",
+        "rating": 3,
+        "created_at": "2020-12-13T09:03:10.000000Z",
+        "updated_at": "2020-12-13T09:03:10.000000Z"
+    },
+    {
+        "id": 3,
+        "del_flag": 0,
+        "interviewer_id": 1,
+        "comment": "Có kiến thức về AWS",
+        "rating": 5,
+        "created_at": "2020-12-13T09:03:10.000000Z",
+        "updated_at": "2020-12-13T09:03:10.000000Z"
+    }
+DONE.
+=======================
+Tạo các controller:
+Trước khi tạo controller thì hướng dẫn cách đổi cổng:8000, hoặc cổng 443. 
+Nếu trên Xwamp thì click vào config trên màn hình chọn httpd.conf và httpd-ssl.conf
+Nếu trên Laragon thì trong tab Services& port của setting.
+Xong.
+Giờ tạo CONTROLLERS:
+λ php artisan make:controller MemberController --resource       
+λ php artisan make:controller TeamController --resource      
+λ php artisan make:controller TeamMemberController --resource   
+λ php artisan make:controller ConfigurationController --resource     
+λ php artisan make:controller CandidateController --resource        
+λ php artisan make:controller InterviewController --resource        
+λ php artisan make:controller InterviewerController --resource        
+λ php artisan make:controller InterviewerCommentController --resource        
+λ php artisan make:controller CandidateSkillController --resource              
+λ php artisan make:controller CandidateContactController --resource
+Done.
+====
+★ Ví dụ trong store của memberController:
+    public function store(Request $request)
+    {
+        $username = $request->input('username');
+        $pwd = $request->input('pwd');
+        $fullname = $request->input('fullname');
+        $gender = $request->input('is_male');
+        $birthday = $request->input('birthday');
+        $email = $request->input('email');
+        $phone = $request->input('phone');
+        $access_level = $request->input('access_level');
+        if($gender == 'on') {
+            $gender = 1;
+        } else {
+            $gender = 0;
+        }
+        $result =\DB::insert('insert into member (del_flag, username, password, fullname, is_male, birthday, email, phone, picture, access_level, created_by, modified_by, created_at, updated_at) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)', ['0', $username, $pwd, $fullname, $gender, $birthday, $email, $phone,'avatar_50.jpg', $access_level, 1, null, Carbon::now('Asia/Tokyo'), Carbon::now('Asia/Tokyo')]);
+        return view('welcome');
+    }
+
+★ Và trong routes:
+    Route::get('memberRegister', function () {
+        return view('registerMembers');
+    })->name('memberRegister');
+
+    Route::post('store', 'MemberController@store')->name('registerMember');
+
+★ Trong views registerMembers.blade.php:
+    <html lang="en">
+    <head>
+      <title>Bootstrap Example</title>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    </head>
+
+    <div class="container">
+      <div class="row"> 
+        <div class="col-sm-4">
+          <h2>Vertical (basic) form</h2>
+          <form action="{{ route('registerMember') }}" method="post">
+            @csrf
+            <div class="form-group">
+              <label for="name">User Name:</label>
+              <input type="text" class="form-control" id="username" name="username" placeholder="User name" />
+            </div>
+            <div class="form-group">
+              <label for="pwd">Password:</label>
+              <input type="password" class="form-control" id="pwd" placeholder="Enter password" name="pwd">
+            </div>
+            <div class="form-group">    
+              <label for="name">Your Full Name:</label>
+              <input type="text" class="form-control" id="name" name="fullname" placeholder="Your full name" />
+            </div>
+            <div class="checkbox">
+              <label><input type="checkbox" name="is_male"> Is Male</label>
+            </div>
+            <div class="form-group">
+              <label for="birthday">Birthday:</label>
+              <input type="text" class="form-control" id="birthday" placeholder="Enter your birthday" name="birthday">
+            </div>
+            <div class="form-group">
+              <label for="email">Email:</label> 
+              <input type="email" class="form-control" id="email" placeholder="Enter email" name="email">
+            </div>
+            <div class="form-group">
+              <label for="phone">Phone Number:</label>
+              <input type="text" class="form-control" id="phone" placeholder="Enter phone number" name="phone">
+            </div>
+            <div class="form-group">
+              <label for="access_level">Access Level:</label>
+              <input type="unsigned" class="form-control" id="access_level" placeholder="Access level" name="access_level">
+            </div>
+            <button type="submit" class="btn btn-default">Submit</button>
+          </form>
+          </div>
+      </div>
+    </div>
+
+★ Giờ http://localhost:8000/memberRegister 
+    Kiểm tra và nhập dữ liệu:
+DONE.
+
+Đôi khi chúng ta có thể dùng như sau để gọi:
+Route::resource('testmember', 'MemberController');
+=======================
+II. Tao front-end bang react:
+
+C:\laragon\www\bussiness-db-project\server-bussiness-db (main)
+λ cd ..
+C:\laragon\www\bussiness-db-project (main)
+λ npx create-react-app react-view
+npx: installed 67 in 10.159s
+quá trình cài đặt mất khoảng 3 phút: sau khi ra thông tin như sau thì ok.
+Success! Created react-view at C:\laragon\www\bussiness-db-project\react-view
+Inside that directory, you can run several commands:
+  npm start //Starts the development server.
+  npm run build //Bundles the app into static files for production.
+  npm test  //Starts the test runner.
+  npm run eject //Removes this tool and copies build dependencies, configuration files
+               and scripts into the app directory. If you do this, you can’t go back!
+We suggest that you begin by typing:
+  cd react-view
+  npm start
+Happy hacking!
+==========
+
+II.1 Start react: Đánh lệnh 'npm start' để start react.
+  cd react-view
+  npm start
+
+II.2 Giờ để tạo view qua react ta cài thêm ít thư viện cho nó:
+C:\laragon\www\bussiness-db-project\react-view (main)
+λ npm i semantic-ui-react --save
+λ npm i reactstrap
+λ npm install --save bootstrap
+λ npm install --save reactstrap react react-dom
+
+
+
+
+
+
+https://allaravel.com/series/hoc-laravel-tu-a-den-z-mien-phi
+
+
+Cách Deploy Lavarel: Có 3 cách
+1. Làm việc với hosting:
+    1) Dùng FTP upload code.
+    2) UPload xong copy 2 file public/index.php và public/.htaccess ra ngoài thư mục gốc hosting.
+    3) Điều chỉnh lại đường dẫn trong file index.php
+    　　require __DIR__.’/../bootstrap/autoload.php’; 
+    　　$app = require_once __DIR__.’/../bootstrap/app.php’;
+    ＝＞　
+    　　require __DIR__.’/public_html/bootstrap/autoload.php’; 
+    　　$app = require_once __DIR__.’/public_html/bootstrap/app.php’;
+    4) Export Database ở localhost rồi import lên hosting.
+    => Sửa thông số kết nối trong .env
+    5) trao quyền permission cho storage với 755.
+    Done!
+
+2. Làm việc với VPS(Virtual Private Server )
+Đồi điều về VPS: 
+    1) Trên một máy vật lý chia thành nhiều máy ảo.
+    2) Một VPS một hệt thống hoàn toàn riêng biệt, có hệ điều hành riêng, có toàn quyền, restart hệ thông anytime.
+    3) Chính vì vậy VPS hạn chế bị tấng công hack local.
+Share Host:
+    1) Giống tên của nó là nhiều website chạy chung một server,
+    2) Cùng chung một tài nguyên server, 
+    3) Do yếu tố đó, nó sẽ ko độc lập và rất khó bảo trì, dễ bị tấn công và ảnh hưởng lẫn nhau.
+
+Deploy on VPS:
+    1) Cài đặt web domain, rồi vào thư mục gốc, tải source code về từ Git, or github với git clone url.git
+    2) Config: Chạy lệnh composer install (nếu là server mới), composer update (là server cũ)
+    3) Copy .env.example .env (các thông số trong .env config ở local nên được copy vào .env.example trước khi commit )
+    4) Chạy lệnh "php artisan key:generate" để tạo key mới.
+    5) Chỉnh sửa thông số kết nối tới Database nếu cần trong .env
+    6) Trao quyền permission cho thư mục storage: "chmod -R 755 storage" 
+    Done.
+
+3. Dùng Docker để đưa image docker lên server: 
+Cách này được hướng dẫn ở một tài liệu khác, nên ko trình bày ở đây.
+
+
+Làm việc với Github or git:
+Hiện tại những file vendor hay .env không được up lên Github: ?
+Trong source code Laravel, vendor là thư mục rất nặng chiếm 34MB/35MB toàn thư mục.
+.env là file môi trường phụ thuộc vào môi trường local.
+Do vậy chúng được default là không đưa lên github.
+Mở file .gitignore trong Laravel, ta thấy nó được bỏ qua khi git.
+/storage/*.key
+/vendor
+.env
+...
+
+Để chỉnh sửa nó dùng lệnh sau:
+$ git rm -r --cached 
+$ git add
+$ git commit -m 'Xoá các file đã được .gitignore' 
+$ git push origin master
+
+https://giangmd.net/cac-khai-niem-co-ban-ve-docker-cho-nguoi-moi-tim-hieu/
+Nguồn bài viết: https://giangmd.net/huong-dan-deploy-website-laravel-len-moi-truong-server/
